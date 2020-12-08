@@ -62,12 +62,13 @@ import threading
 
 import numpy as np
 import tensorflow as tf
+import tensorflow_io as tfio
 tf.compat.v1.disable_eager_execution()
 
 flags.DEFINE_string('input', default=None, help='Data directory')
 flags.DEFINE_string('output', default=None, help='Output directory')
-flags.DEFINE_integer('shards', 10, 'Number of shards per split of TFRecord files.')
-flags.DEFINE_integer('num_threads', 2, 'Number of threads to preprocess the images.')
+flags.DEFINE_integer('shards', 5, 'Number of shards per split of TFRecord files.')
+flags.DEFINE_integer('num_threads', 1, 'Number of threads to preprocess the images.')
 flags.DEFINE_string('labels_file', 'labels', 'Labels file')
 
 FLAGS = flags.FLAGS
@@ -137,8 +138,10 @@ class ImageCoder(object):
                               feed_dict={self._png_data: image_data})
 
     def decode_jpeg(self, image_data):
-        image = self._sess.run(self._decode_jpeg,
+        image_decoded = self._sess.run(self._decode_jpeg,
                                feed_dict={self._decode_jpeg_data: image_data})
+        image_decoded = tf.cast(image_decoded, tf.float16)
+        image = tfio.experimental.color.rgb_to_lab(image_decoded)
         assert len(image.shape) == 3
         assert image.shape[2] == 3
         return image
@@ -332,7 +335,8 @@ def _find_image_files(data_dir, labels_file):
       labels: list of integer; each integer identifies the ground truth.
   """
     print('Determining list of input files and labels from %s.' % data_dir)
-    unique_labels = [l.strip() for l in tf.io.gfile.GFile(labels_file, 'r').readlines()]
+    #unique_labels = [l.strip() for l in tf.io.gfile.GFile(labels_file, 'r').readlines()]
+    unique_labels = ['1', '2', '3', '4', '5']
 
     labels = []
     filenames = []
@@ -343,7 +347,9 @@ def _find_image_files(data_dir, labels_file):
 
     # Construct the list of JPEG files and labels.
     for text in unique_labels:
-        jpeg_file_path = '%s/%s/*' % (data_dir, text)
+        #jpeg_file_path = '%s/%s/*' % (data_dir, text)
+        jpeg_file_path = data_dir + text + ".jpeg"
+        print(jpeg_file_path)
         matching_files = tf.io.gfile.glob(jpeg_file_path)
 
         labels.extend([label_index] * len(matching_files))
@@ -381,9 +387,10 @@ def main(_):
         os.makedirs(FLAGS.output)
 
     # Get all files and split it to validation and training data
-    for split in ['train', 'val']:
-        names, texts, labels = _find_image_files(os.path.join(FLAGS.input, split), FLAGS.labels_file)
-        _process_image_files(split, names, texts, labels, FLAGS.shards)
+    #for split in ['train', 'val']:
+    split = 'lab'
+    names, texts, labels = _find_image_files(FLAGS.input, FLAGS.labels_file)
+    _process_image_files(split, names, texts, labels, FLAGS.shards)
 
 
 if __name__ == '__main__':
