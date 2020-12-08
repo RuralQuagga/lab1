@@ -12,3 +12,6 @@ git clone https://github.com/AlexanderSoroka/CNN-intel-landscape-calssification.
 5. Create first commit 
 6. Change `build_image_data.py`
 7. Commit changes
+
+Execute script:
+![Screenshot](https://github.com/RuralQuagga/lab1/blob/master/image.png)
