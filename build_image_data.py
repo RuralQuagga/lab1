@@ -335,8 +335,8 @@ def _find_image_files(data_dir, labels_file):
       labels: list of integer; each integer identifies the ground truth.
   """
     print('Determining list of input files and labels from %s.' % data_dir)
-    #unique_labels = [l.strip() for l in tf.io.gfile.GFile(labels_file, 'r').readlines()]
-    unique_labels = ['1', '2', '3', '4', '5']
+    unique_labels = [l.strip() for l in tf.io.gfile.GFile(labels_file, 'r').readlines()]
+    #unique_labels = ['1', '2', '3', '4', '5']
 
     labels = []
     filenames = []
@@ -347,8 +347,8 @@ def _find_image_files(data_dir, labels_file):
 
     # Construct the list of JPEG files and labels.
     for text in unique_labels:
-        #jpeg_file_path = '%s/%s/*' % (data_dir, text)
-        jpeg_file_path = data_dir + text + ".jpeg"
+        jpeg_file_path = '%s\%s\*' % (data_dir, text)
+        #jpeg_file_path = data_dir + text + ".jpeg"
         print(jpeg_file_path)
         matching_files = tf.io.gfile.glob(jpeg_file_path)
 
